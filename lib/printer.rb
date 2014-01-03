@@ -3,6 +3,32 @@ require "libusb"
 class Printer
   include LIBUSB
 
+  # Fetched via system_profiler SPUSBDataType
+  #   3DPrinter:
+  #     Product ID: 0x0001
+  #     Vendor ID: 0x4745
+  #     Version:  1.00
+  #     Serial Number: <snip>
+  #     Speed: Up to 12 Mb/sec
+  #     Manufacturer: China Free MC.
+  #     Location ID: 0xfa140000 / 6
+  #     Current Available (mA): 500
+  #     Current Required (mA): Unknown (Device has not been configured)
+  UP_PLUS_AND_MINI_USB_IDENTIFICATION = {idVendor: 0x4745, idProduct: 0x0001}
+
+  def self.setup(logger)
+    # Arbitrarily grabbing the first device, though technically we could support
+    # multiple being attached
+    usb = LIBUSB::Context.new
+    device = usb.devices(UP_PLUS_AND_MINI_USB_IDENTIFICATION).first
+
+    if device.nil?
+      logger.warn "Couldn't find printer. Looking for #{UP_PLUS_AND_MINI_USB_IDENTIFICATION.inspect}"
+    else
+      new(device, logger)
+    end
+  end
+
   def initialize(device, logger)
     @device = device
     @logger = logger

@@ -5,35 +5,26 @@ require "logger"
 $: << "./lib"
 require "printer"
 
+class CLIController
+  def initialize(printer, logger)
+    @printer, @logger = printer, logger
+  end
+
+  def init    
+    @printer.init_printer
+  end
+
+  def run(argv)
+    init
+  end
+end
+
 logger = Logger.new($stdout)
 logger.formatter = proc do |severity, datetime, progname, msg|
   "#{severity}: #{msg}\n"
 end
 
+exit(1) unless printer = Printer.setup(logger)
 
-# Fetched via system_profiler SPUSBDataType
-#   3DPrinter:
-#     Product ID: 0x0001
-#     Vendor ID: 0x4745
-#     Version:  1.00
-#     Serial Number: <snip>
-#     Speed: Up to 12 Mb/sec
-#     Manufacturer: China Free MC.
-#     Location ID: 0xfa140000 / 6
-#     Current Available (mA): 500
-#     Current Required (mA): Unknown (Device has not been configured)
-UP_PLUS_AND_MINI_USB_IDENTIFICATION = {idVendor: 0x4745, idProduct: 0x0001}
-
-# Grab the printer_device
-usb = LIBUSB::Context.new
-printer_device = usb.devices(UP_PLUS_AND_MINI_USB_IDENTIFICATION).first
-
-if printer_device.nil?
-  logger.error "Couldn't find printer. Looking for #{UP_PLUS_AND_MINI_USB_IDENTIFICATION.inspect}"
-  exit(1)
-end
-
-printer = Printer.new(printer_device, logger)
-printer.init_printer
-
+CLIController.new(printer, logger).run(ARGV)
 logger.info "Done"
