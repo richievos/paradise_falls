@@ -1,3 +1,9 @@
+# Paradise falls
+
+Paradise falls. For when you need a place to land after going Up.
+
+A library and Controller for Up printers. This should work for [Up Plus](http://www.pp3dp.com/index.php?page=shop.product_details&flypage=flypage.tpl&product_id=10&category_id=1&option=com_virtuemart&Itemid=37), [Up mini](http://www.pp3dp.com/index.php?page=shop.product_details&flypage=flypage.tpl&product_id=6&category_id=1&option=com_virtuemart&Itemid=37), and [Afinias](http://www.afinia.com/).
+
 Usage:
 
     bin/up_controller command
@@ -20,4 +26,8 @@ Usage:
 
 ## General props
 
-Major props go to sfinktah on the [pp3dp.com forums](http://www.pp3dp.com/forum/viewforum.php?f=10).
+Major props go to sfinktah on the [pp3dp.com forums](http://www.pp3dp.com/forum/viewforum.php?f=10) for doing his initial take on this type of thing.
+
+Also props to [Dan Nawara](https://github.com/danboy) for the great name "paradise falls".
+
+Finally, props to [Inventables](http://www.inventables.com) for being a great place for 3d printer supplies, and being fast with the customer service when I have issues.
