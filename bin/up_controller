@@ -15,7 +15,14 @@ class CLIController
   end
 
   def run(argv)
-    init
+    case command = ARGV[0]
+    when "init"
+      init
+    else
+      @logger.warn "Unsupported command #{command}"
+      exit(1)
+    end
+    exit(0)
   end
 end
 
@@ -24,7 +31,7 @@ logger.formatter = proc do |severity, datetime, progname, msg|
   "#{severity}: #{msg}\n"
 end
 
-exit(1) unless printer = Printer.setup(logger)
+exit(2) unless printer = Printer.setup(logger)
 
 CLIController.new(printer, logger).run(ARGV)
 logger.info "Done"

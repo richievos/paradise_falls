@@ -1,6 +1,6 @@
 Usage:
 
-    bin/up_controller
+    bin/up_controller command
 
 References:
 
@@ -10,4 +10,8 @@ References:
 
 USB Reverse engineering
 * [tutorial](http://vusb-analyzer.sourceforge.net/tutorial.html)
-* [more recent version of vusb-analyzer](https://github.com/vpelletier/vusb-analyzer) — the SF version doesn't handle 
+* [more recent version of vusb-analyzer](https://github.com/vpelletier/vusb-analyzer) — the SF version doesn't handle
+
+History
+* Original forum post positing the idea
+* [sfinktah's original python driver](https://github.com/sfinktah/uptempo) — has some info as well, but I personally am trying to learn from scratch
