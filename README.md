@@ -13,7 +13,14 @@ Usage:
 * [pp3dp forums](http://www.pp3dp.com/forum/viewforum.php?f=10)
 * https://www.thekua.com/atwork/2012/05/usb-programming-with-ruby/
 * http://www.beyondlogic.org/usbnutshell/usb6.shtml
-* http://rubydoc.info/gems/libusb/frames
+* [libusb rdocs](http://rubydoc.info/gems/libusb/frames)
+* [libusb source](https://github.com/larskanis/libusb)
+
+Ones I haven't really gone through yet, but come recommended:
+
+* [USB Made Simple](http://www.usbmadesimple.co.uk/)
+* [USB Complete](http://www.lvr.com/usbc.htm)
+* [PyUSB docs](http://pyusb.sourceforge.net/docs/1.0/tutorial.html) — seems to be more info about this than the ruby libusb driver
 
 ## USB Reverse engineering
 * [tutorial](http://vusb-analyzer.sourceforge.net/tutorial.html)
