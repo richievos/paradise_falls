@@ -25,6 +25,7 @@ module ParadiseFalls
 
       if device.nil?
         logger.warn "Couldn't find printer. Looking for #{UP_PLUS_AND_MINI_USB_IDENTIFICATION.inspect}"
+        false
       else
         new(device, logger)
       end
