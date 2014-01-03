@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+def exit_with_usage(message)
+  puts message
+  puts "Usage:"
+  puts "  #{$0} log_file command_type"
+  exit(1)
+end
+
+log_file = ARGV[0] or exit_with_usage("must specify a log file")
+command_type = ARGV[1] or exit_with_usage("must specify a command type")
+
