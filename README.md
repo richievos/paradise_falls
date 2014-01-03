@@ -1,6 +1,6 @@
-# Paradise falls
+# Paradise Falls
 
-Paradise falls. For when you need a place to land after going Up.
+After you go Up, make sure to visit Paradise Falls.
 
 A library and Controller for Up printers. This should work for [Up Plus](http://www.pp3dp.com/index.php?page=shop.product_details&flypage=flypage.tpl&product_id=10&category_id=1&option=com_virtuemart&Itemid=37), [Up mini](http://www.pp3dp.com/index.php?page=shop.product_details&flypage=flypage.tpl&product_id=6&category_id=1&option=com_virtuemart&Itemid=37), and [Afinias](http://www.afinia.com/).
 
