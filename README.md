@@ -22,14 +22,26 @@ Ones I haven't really gone through yet, but come recommended:
 * [USB Complete](http://www.lvr.com/usbc.htm)
 * [PyUSB docs](http://pyusb.sourceforge.net/docs/1.0/tutorial.html) — seems to be more info about this than the ruby libusb driver
 
-## USB Reverse engineering
-* [tutorial](http://vusb-analyzer.sourceforge.net/tutorial.html)
+## USB reverse engineering
+* [vusb-analyzer tutorial](http://vusb-analyzer.sourceforge.net/tutorial.html)
 * [more recent version of vusb-analyzer](https://github.com/vpelletier/vusb-analyzer) — the SF version doesn't handle
+
+## Approximate milestones
+
++ [x] Initialize a turned off/on Up
+* [ ] Read important kick off print settings
+  * [ ] Platform temperature
+  * [ ] Print time left (if this is on the device)
+  * [ ] Current status (printing or not)
+  * [ ] Extruder temperature
+* [ ] Read some misc print settings
+  * [ ] Platform Height
+* [ ] Cut v0.1.0 of the gem
 
 ## History
 
-* [Original forum post positing the idea](http://www.pp3dp.com/forum/viewtopic.php?f=28&t=22192&start=40)
-* [sfinktah's original python driver](https://github.com/sfinktah/uptempo) — has some info as well, but I personally am trying to learn from scratch
+* [Original forum post talking about a similar idea](http://www.pp3dp.com/forum/viewtopic.php?f=28&t=22192&start=40)
+* [sfinktah's original python driver](https://github.com/sfinktah/uptempo). Note there are likely differences between the two implementations. This variant is being built from scratch so that I learn more about USB and the Up.
 
 ## General props
 
