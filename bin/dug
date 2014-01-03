@@ -3,7 +3,7 @@ require "libusb"
 require "logger"
 
 $: << "./lib"
-require "printer"
+require "paradise_falls/printer"
 
 class CLIController
   def initialize(printer, logger)
@@ -31,7 +31,7 @@ logger.formatter = proc do |severity, datetime, progname, msg|
   "#{severity}: #{msg}\n"
 end
 
-exit(2) unless printer = Printer.setup(logger)
+exit(2) unless printer = ParadiseFalls::Printer.setup(logger)
 
 CLIController.new(printer, logger).run(ARGV)
 logger.info "Done"

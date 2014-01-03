@@ -6,7 +6,7 @@ A library and Controller for Up printers. This should work for [Up Plus](http://
 
 Usage:
 
-    bin/up_controller command
+    bin/carl command
 
 ## References
 
