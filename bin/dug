@@ -54,7 +54,7 @@ class CLIController
 
   def check_temperatures
     temps = @printer.check_temperatures
-    @logger.info("Platform temperature #{temps[:platform].round(1)}C. #{temps[:extruder].round(1)}C")
+    @logger.info("Platform temperature platform=#{temps[:platform].round(1)}C, extruder=#{temps[:extruder].round(1)}C")
   end
 
   def send_and_recv(descriptor_sets)
