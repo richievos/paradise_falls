@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 require "libusb"
 require "logger"
+require 'optparse'
+
 
 $: << "./lib"
 require "paradise_falls/printer"
@@ -10,23 +12,65 @@ class CLIController
     @printer, @logger = printer, logger
   end
 
-  def init    
-    @printer.init_printer
-  end
-
   def run(argv)
-    case command = ARGV[0]
-    when "init"
+    options = {}
+
+    opts = OptionParser.new do |opts|
+      opts.banner = "Usage: #{$0} [options]"
+
+      opts.on("-v", "Run verbosely") do |v|
+        @logger.level = Logger::DEBUG
+      end
+    end
+    opts.parse!(argv)
+
+    commands = %w(send_and_recv init)
+    command = argv.shift
+    case command
+    when 'init'
       init
+    when 'status'
+      status
+    when 'send_and_recv'
+      send_and_recv(argv)
+    when 'temps'
+      check_temperatures
     else
-      @logger.warn "Unsupported command #{command}"
+      puts opts
       exit(1)
     end
     exit(0)
   end
+
+  private
+  def init
+    @printer.init_printer
+  end
+
+  def status
+    platform_height = @printer.check_platform_height
+    @logger.info("Platform height: #{platform_height}")
+  end
+
+  def check_temperatures
+    temps = @printer.check_temperatures
+    @logger.info("Platform temperature #{temps[:platform].round(1)}C. #{temps[:extruder].round(1)}C")
+  end
+
+  def send_and_recv(descriptor_sets)
+    # ["11", "22"] => "1122"
+    # ["1122", "33"] => "112233"
+    byte_string_descriptor = descriptor_sets.join('')
+
+    # "112233" => "\x11\x22\x33"
+    actual_byte_string = [byte_string_descriptor].pack("H*")
+
+    @printer.send_and_recv(actual_byte_string)
+  end
 end
 
 logger = Logger.new($stdout)
+logger.level = Logger::INFO
 logger.formatter = proc do |severity, datetime, progname, msg|
   "#{severity}: #{msg}\n"
 end

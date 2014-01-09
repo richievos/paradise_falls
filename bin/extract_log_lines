@@ -1,5 +1,26 @@
 #!/usr/bin/env ruby
 
+require 'set'
+
+h = {
+  "command" => ["value1", "value2"]
+}
+
+def mark(h)
+  h.inject({}) do |new_h, (k, vs)|
+    new_h.merge!(k => vs.dup)
+  end
+end
+
+def diff(original, current)
+  current.inject({}) do |changes, (k, v)|
+    old_v = original[k] || []
+    changes[k] = v - old_v unless old_v == v
+
+    changes
+  end
+end
+
 def exit_with_usage(message)
   puts message
   puts "Usage:"
@@ -10,3 +31,265 @@ end
 log_file = ARGV[0] or exit_with_usage("must specify a log file")
 command_type = ARGV[1] or exit_with_usage("must specify a command type")
 
+def get_downs(log_file)
+  # 2014-01-03T23:04:19.661-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+  # 2014-01-03T23:04:19.661-06:00| vmx| I120: USBIO:  000: 76 07 07                                        v..             
+  log_output = `grep -A 1 "USBIO: Down" #{log_file}`
+  log_output.gsub!("\n--\n", "\n") # remove the group sepator (the --)
+  log_lines = log_output.split("\n")
+
+  command_byte_sets = Set.new
+  count = 0
+  log_lines.each_slice(2) do |log_set|
+    next unless log_set.size == 2 # stop at the end of the file
+
+    # 2014-01-03T23:04:19.661-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+    command_header = log_set[0]
+    # 2014-01-03T23:04:19.661-06:00| vmx| I120: USBIO:  000: 76 07 07                                        v..             
+    command_bytes_line = log_set[1]
+    _, command_part = command_bytes_line.split("USBIO:  000: ")
+    next unless command_part
+
+    command_bytes = command_part.scan(/(\h\h)+/)
+    command_byte_sets << command_bytes
+  end
+
+  command_byte_sets.to_a.map { |s| s.join(" ") }.sort_by { |s| [s.size, s.gsub(' ', '').hex] }
+end
+
+def begin_ux_loop
+  Thread.new do
+    $app_state = :read
+
+    loop do
+      print "> "
+      work = $stdin.gets
+      case work
+      when /^f(orget)?$/
+        $app_state = :forget
+      when /^h(alt)?$/
+        $app_state = :halt
+      when /^r(ead)?$/
+        $app_state = :read
+      when /^o(pen)?$/
+        $app_state = :open
+      when /^d(iff)?$/
+        $app_state = :diff
+      when /^q(uit)?$/
+        $app_state = :quit
+      when /^c(urrent)?$/
+        $app_state = :current
+      else
+        puts "Current state: #{$app_state}"
+        puts "Didn't understand #{work.chomp}, commands:"
+        puts "  halt"
+        puts "  read"
+        puts "  diff"
+        puts "  quit"
+      end
+    end
+  end
+end
+
+def dump_command_info(command_info)
+  command_info.sort_by { |r, vs| [r.size, r.join(" ")] }.each do |req, values|
+    puts req.join(" ")
+    values.each do |ts, bytes|
+      puts "  #{ts}: #{bytes.join(" ")}"
+    end
+  end
+end
+
+def begin_work_loop(filename)
+  begin
+    # Config
+    device = 3
+
+    file = File.open(filename, 'r')
+    state = :seek
+
+    command_info = {}
+    previous_command_info = {}
+
+    request_timestamp = nil
+    response_timestamp = nil
+
+    request_bytes = []
+    response_bytes = []
+
+    loop do
+      case $app_state
+      when :halt
+        sleep(1)
+
+      when :open
+        file.close
+        file = File.open(filename, 'r')
+        $app_state = :read
+      when :forget
+        state = :seek
+
+        command_info = {}
+        previous_command_info = {}
+
+        request_timestamp = nil
+        response_timestamp = nil
+
+        request_bytes = []
+        response_bytes = []
+        $app_state = :read
+      when :quit
+        puts "quit"
+        break
+      when :current
+        $app_state = :read # minor race condition here, but whatever
+        puts "==Current Info=="
+        dump_command_info(command_info)
+      when :diff
+        $app_state = :read # minor race condition here, but whatever
+        puts "==Diffing=="
+
+        command_diff = diff(previous_command_info, command_info)
+        dump_command_info(command_diff)
+
+        previous_command_info = mark(command_info)
+      when :read
+        unless (line = file.readline rescue nil)
+          sleep(1)
+          next
+        end
+        last_line = line
+
+        if line =~ /Down dev=#{device}/
+          state = :down
+
+          next if response_bytes.empty?
+
+          if !request_bytes.empty?
+            response_sets = (command_info[request_bytes] ||= [])
+            if !response_bytes.empty? &&
+                (response_sets.last.nil? ||
+                  response_sets.last.last != response_bytes)
+              puts "#{request_timestamp}: #{request_bytes.join(" ")} => #{response_bytes.join(" ")}"
+              response_sets << [response_timestamp, response_bytes]
+            end
+          end
+
+          request_bytes = []
+
+          next
+        elsif state == :seek
+          # no-op, waiting for a down
+          next
+        elsif line =~ /Up dev=#{device}/
+          state = :up
+          response_timestamp = nil
+          response_bytes = []
+          next
+        end
+
+        case state
+        when :down
+          byte_line_parts = line.split(/USBIO:\s+\d+: /)
+          next unless byte_line_parts.size > 1
+
+          # all lines in a request have the same timestamp
+          request_timestamp = line.split("|").first
+          request_bytes += byte_line_parts.last.scan(/(\h\h)+/)
+        when :up
+          byte_line_parts = line.split(/USBIO:\s+\d+: /)
+          next unless byte_line_parts.size > 1
+
+          # all lines in a response have the same timestamp
+          response_timestamp = line.split("|").first
+          response_bytes += byte_line_parts.last.scan(/(\h\h)+/)
+        end
+      end
+    end
+  ensure
+    file.close if file
+  end
+end
+
+case command_type
+when "watch"
+  puts "watching #{log_file}"
+  begin_ux_loop
+  begin_work_loop(log_file)
+when "downs"
+  command_byte_sets = get_downs(log_file)
+  puts "#{command_byte_sets.size} Down commands"
+  puts command_byte_sets.join("\n")
+when "send_recv_pairs"
+  signal_string = ARGV[2..ARGV.size].join(" ")
+  signals = if signal_string == "all"
+    command_byte_sets = get_downs(log_file)
+    puts "Will analyze #{command_byte_sets.size} signals"
+    command_byte_sets
+  else
+    [signal_string]
+  end
+
+  signals.each do |signal|
+    puts signal
+
+    # 2014-01-03T23:02:58.647-06:00| vmx| I120: USBIO:  000: 76 00 00                                        v..
+    # 2014-01-03T23:02:58.647-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+    # 2014-01-03T23:02:58.648-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
+    # 2014-01-03T23:02:58.649-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=5 numPackets=0 status=0 0
+    # 2014-01-03T23:02:58.649-06:00| vmx| I120: USBIO:  000: 03 00 00 00 06                                  .....
+    # --
+    number_of_context_lines_to_pull = 7
+    grep_command = "grep -A #{number_of_context_lines_to_pull} -E 'USBIO:.+: +#{signal}   ' #{log_file}"
+    log_output = `#{grep_command}`
+    log_lines = log_output.split("\n")
+
+    count = 0
+    response_sets = []
+
+    log_sets = []
+    log_set = []
+    log_lines.each do |line|
+      if line == '--'
+        log_sets << log_set
+        log_set = []
+      else
+        log_set << line
+      end
+    end
+    log_sets << log_set unless log_set.empty?
+
+    log_sets.each do |log_set|
+      next if log_set.size < 5
+
+      count += 1
+
+      signal_line = log_set[0]
+      response_lines = []
+
+      response_line_timestamp = log_set[1].split("|").first
+
+      log_set[4..log_set.size].each do |line|
+        break if line !~ /USBIO:\s+\d+:/
+        response_lines << line
+      end
+
+      response_bytes = []
+      response_lines.each_with_index do |response_line, i|
+        # 2014-01-03T23:02:58.649-06:00| vmx| I120: USBIO:  000: 03 00 00 00 06                                  .....
+        # => [beginning, bytes]
+        # => [03 00 00 00 06]
+        response_bytes += response_line.split(/USBIO:\s+\d+: /).last.scan(/(\h\h)+/)
+      end
+
+      if !response_bytes.empty? && (response_sets.last.nil? || response_sets.last.last != response_bytes)
+        response_sets << [response_line_timestamp, response_bytes]
+      end
+    end
+    puts "  #{response_sets.size} variants, #{count} matches:"
+    puts "    " + response_sets.map { |line, result| [line, result.join(" ")].join(": ")}.join("\n    ")
+  end
+else
+  puts "Unknown command_type #{command_type}"
+  exit(1)
+end

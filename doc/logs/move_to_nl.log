@@ -1,0 +1,42 @@
+NL
+
+2014-01-05T18:54:24.975-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=10 numPackets=0 status=0 0
+2014-01-05T18:54:24.975-06:00| vmx| I120: USBIO:  000: 4a 00 00 00 48 42 00 00 20 c1                   J...HB.. .      
+2014-01-05T18:54:24.975-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=10 numPackets=0 status=0 0
+2014-01-05T18:54:24.976-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
+2014-01-05T18:54:24.977-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=1 numPackets=0 status=0 0
+2014-01-05T18:54:24.977-06:00| vmx| I120: USBIO:  000: 06                                              .               
+2014-01-05T18:54:24.978-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=10 numPackets=0 status=0 0
+2014-01-05T18:54:24.978-06:00| vmx| I120: USBIO:  000: 4a 01 00 00 48 42 00 00 20 41                   J...HB.. A      
+2014-01-05T18:54:24.978-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=10 numPackets=0 status=0 0
+2014-01-05T18:54:24.979-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
+2014-01-05T18:54:24.979-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=1 numPackets=0 status=0 0
+2014-01-05T18:54:24.979-06:00| vmx| I120: USBIO:  000: 06                                              .               
+
+2014-01-05T18:54:25.161-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.161-06:00| vmx| I120: USBIO:  000: 76 06 06                                        v..             
+2014-01-05T18:54:25.161-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.162-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
+2014-01-05T18:54:25.163-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=5 numPackets=0 status=0 0
+2014-01-05T18:54:25.163-06:00| vmx| I120: USBIO:  000: 37 4b 27 42 06                                  7K'B.           
+
+2014-01-05T18:54:25.164-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.164-06:00| vmx| I120: USBIO:  000: 76 07 07                                        v..             
+2014-01-05T18:54:25.164-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.165-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
+2014-01-05T18:54:25.165-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=5 numPackets=0 status=0 0
+2014-01-05T18:54:25.165-06:00| vmx| I120: USBIO:  000: ff ff 71 43 06                                  ..qC.           
+
+2014-01-05T18:54:25.166-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.166-06:00| vmx| I120: USBIO:  000: 76 08 08                                        v..             
+2014-01-05T18:54:25.166-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.167-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
+2014-01-05T18:54:25.167-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=5 numPackets=0 status=0 0
+2014-01-05T18:54:25.167-06:00| vmx| I120: USBIO:  000: 92 91 51 41 06                                  ..QA.           
+
+2014-01-05T18:54:25.168-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.168-06:00| vmx| I120: USBIO:  000: 76 14 14                                        v..             
+2014-01-05T18:54:25.169-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=3 numPackets=0 status=0 0
+2014-01-05T18:54:25.170-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
+2014-01-05T18:54:25.170-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=5 numPackets=0 status=0 0
+2014-01-05T18:54:25.170-06:00| vmx| I120: USBIO:  000: 00 00 00 00 06                                  .....           

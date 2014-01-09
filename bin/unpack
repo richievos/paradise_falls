@@ -1,0 +1,59 @@
+#!/usr/bin/env ruby
+
+def write(message, *vals)
+  vals = vals.map(&:first)
+  return unless vals.any?
+  puts message
+  puts "   #{vals.join(", ")}"
+end
+
+def try_unpack(s)
+  write "E         | Float   | double-precision, little-endian byte order",
+        s.unpack("E*")
+  write "e         | Float   | single-precision, little-endian byte order",
+        s.unpack("e*")
+  write "G         | Float   | double-precision, network (big-endian) byte order",
+        s.unpack("G*")
+  write "g         | Float   | single-precision, network (big-endian) byte order",
+        s.unpack("g*")
+
+  write "n         | Integer | 16-bit unsigned, network (big-endian) byte order",
+        s.unpack("n*")
+  write "N         | Integer | 32-bit unsigned, network (big-endian) byte order",
+        s.unpack("N*")
+  write "v         | Integer | 16-bit unsigned, VAX (little-endian) byte order"
+        s.unpack("v*")
+  write "V         | Integer | 32-bit unsigned, VAX (little-endian) byte order",
+        s.unpack("V*")
+
+  write %&S> L> Q>  | Integer | same as the directives without ">" except&,
+        s.unpack("S>*"), s.unpack("L>*"), s.unpack("Q>*")
+  write %&s> l> q>  |         | big endian&,
+        s.unpack("s>*"), s.unpack("l>*"), s.unpack("q>*")
+  write %&S!> I!>   |         | (available since Ruby 1.9.3)&,
+        s.unpack("S!>*"), s.unpack("I!>*")
+  write %&L!> Q!>   |         | "S>" is same as "n"&,
+        s.unpack("L!>*") #, s.unpack("Q!>*")
+  write %&s!> i!>   |         | "L>" is same as "N"&,
+        s.unpack("s!>*"), s.unpack("i!>*")
+  write %&l!> q!>   |         |&,
+        s.unpack("l!>*") #, s.unpack("q!>*")
+
+  write %&S< L< Q<  | Integer | same as the directives without "<" except&,
+        s.unpack("S<*"), s.unpack("L<*"), s.unpack("Q<*")
+  write %&s< l< q<  |         | little endian&,
+        s.unpack("s<*"), s.unpack("l<*"), s.unpack("q<*")
+  write %&S!< I!<   |         | (available since Ruby 1.9.3)&,
+        s.unpack("S!<*"), s.unpack("I!<*")
+  write %&L!< Q!<   |         | "S<" is same as "v"&,
+        s.unpack("L!<*") #, s.unpack("Q!<*")
+  write %&s!< i!<   |         | "L<" is same as "V"&,
+        s.unpack("s!<*"), s.unpack("i!<*")
+  write %&l!< q!<   |         |&,
+        s.unpack("l!<*") #, s.unpack("q!<")
+end
+
+def test(s)
+  load '/Users/richievos/Dropbox/workspace/personal/Up Plus reverse engineer/paradise_falls/bin/unpack'
+  try_unpack(s)
+end
