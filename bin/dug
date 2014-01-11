@@ -15,14 +15,14 @@ class CLIController
 
     ["check_temperatures", "",
      ->(logger, printer, argv) {
-        printer.check_temperatures
+        temps = printer.check_temperatures
         logger.info("Platform temperature platform=#{temps[:platform].round(1)}C, extruder=#{temps[:extruder].round(1)}C")
       }
     ],
 
     ["platform_height", "",
      ->(logger, printer, argv) {
-       platform_height = @printer.check_platform_height
+       platform_height = printer.check_platform_height
        logger.info("Platform height: #{platform_height}")
      }
     ],
@@ -35,7 +35,7 @@ class CLIController
     ],
 
     ["set_location", "(x|y|z) coordinate",
-     ->(logger, printer, argv) { printer.set_location(argv.first.to_sym, argv[1].to_f) }
+     ->(logger, printer, argv) { printer.set_location(argv.first.to_sym => argv[1].to_f) }
     ],
 
     ["send_and_recv", "byte_sequence (eg 76 00 00)",

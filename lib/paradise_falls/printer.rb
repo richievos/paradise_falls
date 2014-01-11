@@ -243,17 +243,19 @@ module ParadiseFalls
       output
     end
 
+    # 07 06 seems to be bad command
     def set_location(options)
       with_handle do |handle|
-        [[:x, "4a 01 00 00 20 41", 1],
-         [:y, "4a 00 00 00 20 41", 1],
-         [:z, "4a 02 00 00 20 41", -1]].each do |dimension, prefix, multiplier|
+        [[:x, "\x4a\x01\x00\x00\x20\x41", 1],
+         [:y, "\x4a\x00\x00\x00\x20\x41", 1],
+         [:z, "\x4a\x02\x00\x00\x20\x41", -1]].each do |dimension, prefix, multiplier|
           next unless location = options[dimension]
-          @logger.debug("Setting #{dimension} location to #{location.abs}")
-          perform_send_and_recv(handle, "#{prefix} #{generate_float_string(location.abs)}")
-        end
 
-        perform_send_and_recv(handle, command)
+          @logger.info("Setting #{dimension} location to #{location.abs}")
+          command = prefix.bytes.to_a + generate_float_string(location.abs * multiplier)
+          command = command.pack("C*")
+          perform_send_and_recv(handle, command)
+        end
       end
     end
 
@@ -289,7 +291,7 @@ module ParadiseFalls
     end
 
     def perform_send_and_recv(handle, command)
-      @logger.debug "Sending command"
+      @logger.debug "Sending command #{command}"
       handle.bulk_transfer(endpoint: @bulk_output_endpoint, dataOut: command)
         result = drain_any_input(handle)
 
