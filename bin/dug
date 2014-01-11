@@ -34,7 +34,7 @@ class CLIController
      }
     ],
 
-    ["set_location", "(x|y|z) coordinate",
+    ["set_location", "{x|y|z} coordinate (x-max = ~130, y-max = ~130, z-max = ~130)",
      ->(logger, printer, argv) { printer.set_location(argv.first.to_sym => argv[1].to_f) }
     ],
 
