@@ -100,6 +100,7 @@ require "libusb"
 module ParadiseFalls
   class Printer
     include LIBUSB
+    include NumberConversion
 
     # Fetched via system_profiler SPUSBDataType
     #   3DPrinter:
@@ -162,35 +163,6 @@ module ParadiseFalls
       @logger.info "Initializing printer"
 
       with_handle do |handle|
-        # 2014-01-01T18:56:58.951-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=6 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.951-06:00| vmx| I120: USBIO:  000: 56 10 00 00 00 00                               V.....          
-        # 2014-01-01T18:56:58.951-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=6 numPackets=0 status=0 0
-
-        # 2014-01-01T18:56:58.952-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.952-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=1 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.952-06:00| vmx| I120: USBIO:  000: 06                                              .               
-
-        # 2014-01-01T18:56:58.953-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=1 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.953-06:00| vmx| I120: USBIO:  000: 63                                              c               
-        # 2014-01-01T18:56:58.954-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=1 numPackets=0 status=0 0
-
-        # 2014-01-01T18:56:58.956-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.956-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=1 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.956-06:00| vmx| I120: USBIO:  000: 06                                              .               
-
-        # 2014-01-01T18:56:58.958-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=2 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.958-06:00| vmx| I120: USBIO:  000: 4c 30                                           L0              
-        # 2014-01-01T18:56:58.959-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=2 numPackets=0 status=0 0
-
-        # 2014-01-01T18:56:58.960-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=81 stream=0 datalen=4096 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.960-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=81 stream=0 datalen=5 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.960-06:00| vmx| I120: USBIO:  000: 01 00 00 00 06                                  .....           
-
-        # 2014-01-01T18:56:58.961-06:00| vmx| I120: USBIO: Down dev=3 'usb:3' endpt=1 stream=0 datalen=1 numPackets=0 status=0 0
-        # 2014-01-01T18:56:58.961-06:00| vmx| I120: USBIO:  000: 58                                              X               
-        # 2014-01-01T18:56:58.961-06:00| vmx| I120: USBIO: Up dev=3 'usb:3' endpt=1 stream=0 datalen=1 numPackets=0 status=0 0
-
-
         # Without the below input drains this errors out with:
         #   TRANSFER_TIMED_OUT (LIBUSB::ERROR_TIMEOUT)
         # From the log dump, it looks like the up software is periodically reading data during the
@@ -247,7 +219,7 @@ module ParadiseFalls
     def set_location(options)
       with_handle do |handle|
         [[:x, "\x4a\x01\x00\x00\x20\x41", 1],
-         [:y, "\x4a\x00\x00\x00\x20\x41", 1],
+         #[:y, "\x4a\x00\x00\x00\x20\x41", 1],
          [:z, "\x4a\x02\x00\x00\x20\x41", -1]].each do |dimension, prefix, multiplier|
           next unless location = options[dimension]
 
@@ -268,27 +240,6 @@ module ParadiseFalls
     end
 
     private
-    def generate_float_string(float)
-      # Input:
-      #   41.45849609375
-      #   42 25 d5 80
-      # Up format:
-      #   80 d5 25 42 06
-      byte_seq = [float].pack("f").bytes.to_a
-      up_byte_seq = [byte_seq[0], byte_seq[1], byte_seq[2], byte_seq[3]]
-    end
-
-    def parse_float_string(str_byte_seq)
-      # Input:
-      #   80 d5 25 42 06
-      # Actual float:
-      #   42 25 d5 80
-      #   41.45849609375
-      # 06 appears to just mean "ok"
-      byte_seq = str_byte_seq.bytes.to_a
-      redone_str_byte_seq = [byte_seq[3], byte_seq[2], byte_seq[1], byte_seq[0]].pack("C*").force_encoding("utf-8")
-      redone_str_byte_seq.unpack("g").first
-    end
 
     def perform_send_and_recv(handle, command)
       @logger.debug "Sending command #{command}"
