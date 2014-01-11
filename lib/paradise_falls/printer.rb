@@ -237,8 +237,8 @@ module ParadiseFalls
     def check_temperatures
       @logger.info "Retrieving platform and extruder temperatures"
       output = {}
-      output[:extruder] = parse_temps(send_and_recv("\x76\x06\x06"))
-      output[:platform] = parse_temps(send_and_recv("\x76\x08\x08"))
+      output[:extruder] = parse_float_string(send_and_recv("\x76\x06\x06"))
+      output[:platform] = parse_float_string(send_and_recv("\x76\x08\x08"))
       output
     end
 
@@ -251,8 +251,12 @@ module ParadiseFalls
     end
 
     private
-    def parse_temps(str_byte_seq)
-      # 80 d5 25 42 06
+    def parse_float_string(str_byte_seq)
+      # Input:
+      #   80 d5 25 42 06
+      # Actual float:
+      #   42 25 d5 80
+      # 06 appears to just mean "ok"
       byte_seq = str_byte_seq.bytes.to_a
       redone_str_byte_seq = [byte_seq[3], byte_seq[2], byte_seq[1], byte_seq[0]].pack("C*").force_encoding("utf-8")
       redone_str_byte_seq.unpack("g").first
