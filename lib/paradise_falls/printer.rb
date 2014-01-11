@@ -217,7 +217,6 @@ module ParadiseFalls
         height_info = perform_send_and_recv(handle, "\x70\x32")
 
         height_info, µm_height = height_info[0..4], height_info.bytes.to_a[4].to_f
-        # µm_height = 6.2
 
         @logger.debug "Platform height height_info=#{hex_out(height_info)}, µm_height=#{µm_height}"
 
@@ -237,9 +236,25 @@ module ParadiseFalls
     def check_temperatures
       @logger.info "Retrieving platform and extruder temperatures"
       output = {}
-      output[:extruder] = parse_float_string(send_and_recv("\x76\x06\x06"))
-      output[:platform] = parse_float_string(send_and_recv("\x76\x08\x08"))
+      with_handle do |handle|
+        output[:extruder] = parse_float_string(perform_send_and_recv(handle, "\x76\x06\x06"))
+        output[:platform] = parse_float_string(perform_send_and_recv(handle, "\x76\x08\x08"))
+      end
       output
+    end
+
+    def set_location(options)
+      with_handle do |handle|
+        [[:x, "4a 01 00 00 20 41", 1],
+         [:y, "4a 00 00 00 20 41", 1],
+         [:z, "4a 02 00 00 20 41", -1]].each do |dimension, prefix, multiplier|
+          next unless location = options[dimension]
+          @logger.debug("Setting #{dimension} location to #{location.abs}")
+          perform_send_and_recv(handle, "#{prefix} #{generate_float_string(location.abs)}")
+        end
+
+        perform_send_and_recv(handle, command)
+      end
     end
 
     def send_and_recv(command)
@@ -251,11 +266,22 @@ module ParadiseFalls
     end
 
     private
+    def generate_float_string(float)
+      # Input:
+      #   41.45849609375
+      #   42 25 d5 80
+      # Up format:
+      #   80 d5 25 42 06
+      byte_seq = [float].pack("f").bytes.to_a
+      up_byte_seq = [byte_seq[0], byte_seq[1], byte_seq[2], byte_seq[3]]
+    end
+
     def parse_float_string(str_byte_seq)
       # Input:
       #   80 d5 25 42 06
       # Actual float:
       #   42 25 d5 80
+      #   41.45849609375
       # 06 appears to just mean "ok"
       byte_seq = str_byte_seq.bytes.to_a
       redone_str_byte_seq = [byte_seq[3], byte_seq[2], byte_seq[1], byte_seq[0]].pack("C*").force_encoding("utf-8")

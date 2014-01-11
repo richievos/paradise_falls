@@ -8,6 +8,50 @@ $: << "./lib"
 require "paradise_falls/printer"
 
 class CLIController
+  COMMANDS = [
+    ["init", "",
+     ->(logger, printer, argv) { printer.init_printer }
+    ],
+
+    ["check_temperatures", "",
+     ->(logger, printer, argv) {
+        printer.check_temperatures
+        logger.info("Platform temperature platform=#{temps[:platform].round(1)}C, extruder=#{temps[:extruder].round(1)}C")
+      }
+    ],
+
+    ["platform_height", "",
+     ->(logger, printer, argv) {
+       platform_height = @printer.check_platform_height
+       logger.info("Platform height: #{platform_height}")
+     }
+    ],
+
+    ["status", "",
+     ->(*args) {
+       COMMANDS["platform_height"].call(*args)
+       COMMANDS["check_temperatures"].call(*args)
+     }
+    ],
+
+    ["set_location", "(x|y|z) coordinate",
+     ->(logger, printer, argv) { printer.set_location(argv.first.to_sym, argv[1].to_f) }
+    ],
+
+    ["send_and_recv", "byte_sequence (eg 76 00 00)",
+     ->(logger, printer, descriptor_sets) {
+       # ["11", "22"] => "1122"
+       # ["1122", "33"] => "112233"
+       byte_string_descriptor = descriptor_sets.join('')
+
+       # "112233" => "\x11\x22\x33"
+       actual_byte_string = [byte_string_descriptor].pack("H*")
+
+       printer.send_and_recv(actual_byte_string)
+     }
+    ]
+  ]
+
   def initialize(printer, logger)
     @printer, @logger = printer, logger
   end
@@ -15,8 +59,10 @@ class CLIController
   def run(argv)
     options = {}
 
+    command_names_and_descriptions = COMMANDS.map { |command_info| command_info[0, 2].join(" ") }
+
     opts = OptionParser.new do |opts|
-      opts.banner = "Usage: #{$0} [options]"
+      opts.banner = "Usage: #{$0} [flags] command [options]\n  #{command_names_and_descriptions.join("\n  ")}\nFlags:"
 
       opts.on("-v", "Run verbosely") do |v|
         @logger.level = Logger::DEBUG
@@ -24,48 +70,15 @@ class CLIController
     end
     opts.parse!(argv)
 
-    commands = %w(send_and_recv init)
-    command = argv.shift
-    case command
-    when 'init'
-      init
-    when 'status'
-      status
-    when 'send_and_recv'
-      send_and_recv(argv)
-    when 'temps'
-      check_temperatures
+    command_name = argv.shift
+    command = COMMANDS.detect { |name, desc, val| name == command_name }
+    if command
+      command.last.call(@logger, @printer, argv)
+      exit(0)
     else
       puts opts
       exit(1)
     end
-    exit(0)
-  end
-
-  private
-  def init
-    @printer.init_printer
-  end
-
-  def status
-    platform_height = @printer.check_platform_height
-    @logger.info("Platform height: #{platform_height}")
-  end
-
-  def check_temperatures
-    temps = @printer.check_temperatures
-    @logger.info("Platform temperature platform=#{temps[:platform].round(1)}C, extruder=#{temps[:extruder].round(1)}C")
-  end
-
-  def send_and_recv(descriptor_sets)
-    # ["11", "22"] => "1122"
-    # ["1122", "33"] => "112233"
-    byte_string_descriptor = descriptor_sets.join('')
-
-    # "112233" => "\x11\x22\x33"
-    actual_byte_string = [byte_string_descriptor].pack("H*")
-
-    @printer.send_and_recv(actual_byte_string)
   end
 end
 
