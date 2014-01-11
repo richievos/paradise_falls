@@ -1,6 +1,8 @@
 # encoding: utf-8
 require "libusb"
 
+require "paradise_falls/number_conversion"
+
 # Platform: 370.2 C
 # Material: 216g ABS, Total: 21.01Kg
 
@@ -100,7 +102,7 @@ require "libusb"
 module ParadiseFalls
   class Printer
     include LIBUSB
-    include NumberConversion
+    include ParadiseFalls::NumberConversion
 
     # Fetched via system_profiler SPUSBDataType
     #   3DPrinter:
@@ -218,13 +220,13 @@ module ParadiseFalls
     # 07 06 seems to be bad command
     def set_location(options)
       with_handle do |handle|
-        [[:x, "\x4a\x01\x00\x00\x20\x41", 1],
-         #[:y, "\x4a\x00\x00\x00\x20\x41", 1],
-         [:z, "\x4a\x02\x00\x00\x20\x41", -1]].each do |dimension, prefix, multiplier|
+        [[:x, "\x4a\x00\x00\x00\x48\x42\x00\x00", :generate_ushort_bytes, 1],
+         [:y, "\x4a\x01\x00\x00\x48\x42\x00\x00", :generate_ushort_bytes, 1],
+         [:z, "\x4a\x02\x00\x00\x20\x41", :generate_float_bytes, -1]].each do |dimension, prefix, serializer, multiplier|
           next unless location = options[dimension]
 
           @logger.info("Setting #{dimension} location to #{location.abs}")
-          command = prefix.bytes.to_a + generate_float_string(location.abs * multiplier)
+          command = prefix.bytes.to_a + send(serializer, location.abs * multiplier)
           command = command.pack("C*")
           perform_send_and_recv(handle, command)
         end
@@ -242,7 +244,7 @@ module ParadiseFalls
     private
 
     def perform_send_and_recv(handle, command)
-      @logger.debug "Sending command #{command}"
+      @logger.debug "Sending command #{hex_out(command)}"
       handle.bulk_transfer(endpoint: @bulk_output_endpoint, dataOut: command)
         result = drain_any_input(handle)
 

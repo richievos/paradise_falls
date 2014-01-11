@@ -409,7 +409,7 @@ So, that means each 2 byte pair has the 2 bytes inverted. It also has them backw
 
 ### Platform X/Y
 
-    4a 00 00 00 48 42 00 00 xx xx
+    4a 0{0,1} 00 00 48 42 00 00 xx xx
 
     Far:    20 c1
     Center: 8c c2
